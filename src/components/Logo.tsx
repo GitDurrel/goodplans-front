@@ -1,16 +1,33 @@
-// import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
-const LOGO_URL = 'https://unixwmlawlmpsycmuwhy.supabase.co/storage/v1/object/sign/logo/black.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5Xzk4ZmU2MmMxLTFlNGQtNDRhOS1hOWM5LWYwNDY2NjFiZThmYyJ9.eyJ1cmwiOiJsb2dvL2JsYWNrLnBuZyIsImlhdCI6MTc0NjYzOTExMCwiZXhwIjoyMDYxOTk5MTEwfQ.dgkVjSHznMp6gb-vpj4vDbDWi2XV4ytf4AHIoUUIp5o';
+const LOGO_URL =
+  "https://unixwmlawlmpsycmuwhy.supabase.co/storage/v1/object/sign/logo/black.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5Xzk4ZmU2MmMxLTFlNGQtNDRhOS1hOWM5LWYwNDY2NjFiZThmYyJ9.eyJ1cmwiOiJsb2dvL2JsYWNrLnBuZyIsImlhdCI6MTc0NjYzOTExMCwiZXhwIjoyMDYxOTk5MTEwfQ.dgkVjSHznMp6gb-vpj4vDbDWi2XV4ytf4AHIoUUIp5o";
 
-export default function Logo() {
+interface LogoProps {
+  className?: string;
+  /**
+   * Render the logo wrapped in a home link. Disable when the parent already handles navigation
+   * to avoid nested anchors.
+   */
+  withLink?: boolean;
+}
+
+export default function Logo({ className = "flex items-center", withLink = true }: LogoProps) {
+  const image = (
+    <img
+      src={LOGO_URL}
+      alt="Goodplans Logo"
+      className="h-12 sm:h-14 md:h-16 w-auto object-contain"
+    />
+  );
+
+  if (!withLink) {
+    return <div className={className}>{image}</div>;
+  }
+
   return (
-    <Link to="/" className="flex items-center">
-      <img 
-        src={LOGO_URL}
-        alt="Goodplans Logo" 
-        className="h-42 sm:h-42 md:h-60 w-auto object-contain" // Tailles augmentées
-      />
+    <Link to="/" className={className} aria-label="Retour à l’accueil">
+      {image}
     </Link>
   );
 }

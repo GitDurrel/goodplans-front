@@ -9,7 +9,7 @@ import type { AccountType } from "../features/auth/type";
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, loading: authLoading } = useAuth();
 
   const sellerCheckbox = useCheckbox(false);
 
@@ -366,10 +366,17 @@ export function RegisterPage() {
             {/* Bouton s’inscrire */}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg text-sm transition disabled:bg-gray-400"
+              disabled={loading || authLoading}
+              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg text-sm transition disabled:bg-gray-400 flex items-center justify-center gap-2"
             >
-              {loading ? "Création du compte..." : "S’inscrire"}
+              {loading || authLoading ? (
+                <>
+                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Traitement en cours...
+                </>
+              ) : (
+                "S’inscrire"
+              )}
             </button>
           </form>
 

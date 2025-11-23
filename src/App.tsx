@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { LoginPage } from "./pages/LoginPage";
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
@@ -6,7 +6,10 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { VerifyOtpPage } from "./pages/VerifyOtpPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { MessagesPage } from "./pages/MessagesPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import Navbar from "./components/layout/Navbar/Navbar";
+import Footer from "./components/layout/Footer/Footer";
+import { HomePage } from "./pages/HomePage/HomePage";
 
 
 function ForbiddenPage() {
@@ -22,27 +25,14 @@ function ForbiddenPage() {
   );
 }
 
-function HomePage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="bg-white rounded-2xl shadow-lg px-8 py-10">
-        <h1 className="text-2xl font-bold mb-4">
-          Bienvenue sur la page protégée !
-        </h1>
-        <p className="text-slate-700 text-sm">
-          Seuls les utilisateurs authentifiés (et avec OTP validé) peuvent voir
-          cette page.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function App() {
+  const location = useLocation();
+  const hideChrome = ["/login", "/register"].includes(location.pathname);
+
   return (
     <>
+      {!hideChrome && <Navbar />}
 
-    {/* Routes Public */}
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -51,12 +41,14 @@ function App() {
         <Route path="/notfound" element={<NotFoundPage />} />
         <Route path="/" element={<HomePage />} />
 
-        {/* Routes Protégés apres authentification */}
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="messages"
           element={
@@ -65,10 +57,10 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-
-
       </Routes>
+
+      {!hideChrome && <Footer />}
+
       <Toaster
         position="top-right"
         toastOptions={{
@@ -83,7 +75,6 @@ function App() {
           },
         }}
       />
-
     </>
   );
 }
