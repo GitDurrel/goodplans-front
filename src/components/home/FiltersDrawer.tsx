@@ -1,8 +1,6 @@
 import { X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-
 import type { Filters } from "../../pages/HomePage/types";
-
 
 interface CategoryTab {
   id: string;
@@ -154,10 +152,13 @@ export function FiltersDrawer({
               <div className="flex gap-4">
                 <button
                   onClick={() =>
-                    onChange("transactionType", filters.transactionType === "location" ? "" : "location")
+                    onChange(
+                      "transaction_type",
+                      filters.transaction_type === "location" ? "" : "location"
+                    )
                   }
                   className={`flex-1 px-4 py-3 rounded-xl text-base font-medium transition-all ${
-                    filters.transactionType === "location"
+                    filters.transaction_type === "location"
                       ? "bg-blue-600 text-white"
                       : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                   }`}
@@ -166,10 +167,13 @@ export function FiltersDrawer({
                 </button>
                 <button
                   onClick={() =>
-                    onChange("transactionType", filters.transactionType === "achat" ? "" : "achat")
+                    onChange(
+                      "transaction_type",
+                      filters.transaction_type === "achat" ? "" : "achat"
+                    )
                   }
                   className={`flex-1 px-4 py-3 rounded-xl text-base font-medium transition-all ${
-                    filters.transactionType === "achat"
+                    filters.transaction_type === "achat"
                       ? "bg-blue-600 text-white"
                       : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                   }`}

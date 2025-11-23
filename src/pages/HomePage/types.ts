@@ -24,7 +24,7 @@ export interface Filters {
   region: string;
   minPrice: string;
   maxPrice: string;
-  transactionType: string;
+  transaction_type: string;
 }
 
 export interface Category {

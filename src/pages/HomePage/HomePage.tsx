@@ -23,7 +23,7 @@ const DEFAULT_FILTERS: Filters = {
   region: "",
   minPrice: "",
   maxPrice: "",
-  transactionType: "",
+  transaction_type: "",
 };
 
 const CAROUSEL_ITEMS: CarouselItem[] = [
@@ -153,7 +153,8 @@ export function HomePage() {
     if (filters.region) searchParams.append("region", filters.region);
     if (filters.minPrice) searchParams.append("minPrice", filters.minPrice);
     if (filters.maxPrice) searchParams.append("maxPrice", filters.maxPrice);
-    if (filters.transactionType) searchParams.append("transactionType", filters.transactionType);
+    if (filters.transaction_type)
+      searchParams.append("transaction_type", filters.transaction_type);
 
     navigate(`/search?${searchParams.toString()}`);
   };

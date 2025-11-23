@@ -24,6 +24,7 @@ interface AuthContextType {
     accessToken: string | null;
     refreshToken: string | null;
     loading: boolean;
+    hydrating: boolean;
     isAuthenticated: boolean;
 
     login: (email: string, password: string) => Promise<void>;
@@ -216,6 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         accessToken,
         refreshToken,
         loading,
+        hydrating,
         isAuthenticated,
         login,
         register,
@@ -229,7 +231,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return (
         <AuthContext.Provider value={value}>
-            {!hydrating && children}
+            {children}
+            {hydrating && (
+                <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+                    <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full" />
+                </div>
+            )}
         </AuthContext.Provider>
     );
 }
