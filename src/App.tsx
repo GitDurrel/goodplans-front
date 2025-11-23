@@ -1,0 +1,91 @@
+import { Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { LoginPage } from "./pages/LoginPage";
+import { ProtectedRoute } from "./features/auth/ProtectedRoute";
+import { RegisterPage } from "./pages/RegisterPage";
+import { VerifyOtpPage } from "./pages/VerifyOtpPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { MessagesPage } from "./pages/MessagesPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
+
+
+function ForbiddenPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="bg-white rounded-2xl shadow-lg px-8 py-10">
+        <h1 className="text-2xl font-bold mb-4">Accès refusé</h1>
+        <p className="text-slate-700 text-sm">
+          Vous n&apos;avez pas les droits nécessaires pour accéder à cette page.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function HomePage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="bg-white rounded-2xl shadow-lg px-8 py-10">
+        <h1 className="text-2xl font-bold mb-4">
+          Bienvenue sur la page protégée !
+        </h1>
+        <p className="text-slate-700 text-sm">
+          Seuls les utilisateurs authentifiés (et avec OTP validé) peuvent voir
+          cette page.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <>
+
+    {/* Routes Public */}
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
+        <Route path="/forbidden" element={<ForbiddenPage />} />
+        <Route path="/notfound" element={<NotFoundPage />} />
+        <Route path="/" element={<HomePage />} />
+
+        {/* Routes Protégés apres authentification */}
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        } />
+        <Route
+          path="messages"
+          element={
+            <ProtectedRoute>
+              <MessagesPage />
+            </ProtectedRoute>
+          }
+        />
+
+
+
+      </Routes>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3500,
+          style: {
+            borderRadius: "10px",
+            background: "#333",
+            color: "#fff",
+          },
+          error: {
+            duration: 8000, // erreurs visibles plus longtemps
+          },
+        }}
+      />
+
+    </>
+  );
+}
+
+export default App;
