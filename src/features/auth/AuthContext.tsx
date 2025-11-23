@@ -73,7 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [refreshToken, setRefreshToken] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [hydrating, setHydrating] = useState(true);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -83,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const init = async () => {
             const stored = loadFromStorage();
             if (!stored) {
-                setLoading(false);
+                setHydrating(false);
                 return;
             }
 
@@ -105,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setAccessToken(null);
                 setRefreshToken(null);
             } finally {
-                setLoading(false);
+                setHydrating(false);
             }
         };
 
@@ -228,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {!hydrating && children}
         </AuthContext.Provider>
     );
 }

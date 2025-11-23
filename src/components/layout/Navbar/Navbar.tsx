@@ -1,57 +1,32 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Menu,
-  X,
-  PlusCircle,
-  MessageSquare,
-} from "lucide-react";
+import { Menu, X, PlusCircle } from "lucide-react";
 
 import Logo from "../../Logo";
-
-import { useAuth } from "../../../features/auth/AuthContext"; 
-import { useFetch } from "../../../hooks/useFetch";
-
+import { useAuth } from "../../../features/auth/AuthContext";
+import { useUnreadCount } from "../../../features/messages/messagesApi";
+import { PERMISSIONS, ROLES } from "../../../constants/auth";
 import {
-  MessageIcon,
   DesktopProfileMenu,
+  MessageIndicator,
   MobileMenu,
 } from "./NavbarSections";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { user, logout, hasPermission } = useAuth();
-
+  const { user, logout, hasPermission, hasRole } = useAuth();
   const isAuthenticated = !!user;
 
-  /* ------------------------------------------------------------------
-     Fetch des messages non lus
-  ------------------------------------------------------------------ */
+  const { data: unreadData } = useUnreadCount(!isAuthenticated);
+  const unreadMessages =
+    unreadData?.unreadCount ?? unreadData?.unread_count ?? unreadData?.count ?? 0;
 
-  const {
-    data: unread,
-    refetch: refetchUnread,
-  } = useFetch<number>(
-    "/messages/unread-count",
-    { method: "GET" }
-  );
+  const isSeller = hasRole(ROLES.SELLER_PRO) || hasRole(ROLES.SELLER_PARTICULAR);
+  const canPostListing = isSeller || hasPermission(PERMISSIONS.LISTING_CREATE);
+  const canAccessMessages = hasPermission(PERMISSIONS.MESSAGES_ACCESS);
+  const canSeeSellerDashboard = hasPermission(PERMISSIONS.SELLER_STATS_VIEW);
+  const canSeeAdmin = hasRole(ROLES.ADMIN) || hasRole(ROLES.SUPER_ADMIN);
 
-  const unreadMessages = unread ?? 0;
-
-  const {
-    data: profile,
-  } = useFetch("/users/me/profile", {
-    method: "GET",
-    skip: !isAuthenticated,
-  });
-
-  const canPostListing = hasPermission("listing.create");
-  const canAccessMessages = hasPermission("messages.access");
-  const canSeeSellerDashboard = hasPermission("seller.stats.view");
-
-  /* ------------------------------------------------------------------
-     UI State
-  ------------------------------------------------------------------ */
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -59,10 +34,6 @@ export default function Navbar() {
     setIsMenuOpen(false);
     setIsProfileOpen(false);
   }
-
-  /* ------------------------------------------------------------------
-     Actions
-  ------------------------------------------------------------------ */
 
   function handlePostListing() {
     if (!canPostListing) {
@@ -74,7 +45,6 @@ export default function Navbar() {
 
   function handleMessages() {
     navigate("/messages");
-    refetchUnread();
   }
 
   async function handleLogout() {
@@ -82,47 +52,34 @@ export default function Navbar() {
     navigate("/login");
   }
 
-  /* ------------------------------------------------------------------
-     RENDER
-  ------------------------------------------------------------------ */
-
   return (
     <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-3">
         <div className="h-16 flex items-center justify-between">
-
-          {/* Logo */}
-          <div className="flex items-center">
+          <Link to="/" className="flex items-center">
             <Logo />
-          </div>
+          </Link>
 
-          {/* Right section */}
           <div className="flex items-center gap-3">
-
-            {/* Déposer annonce */}
-            {isAuthenticated && (
+            {isAuthenticated && canPostListing && (
               <button
                 onClick={handlePostListing}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-white 
-                  ${canPostListing ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"}
-                `}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-white bg-blue-600 hover:bg-blue-700"
               >
                 <PlusCircle className="h-5 w-5" />
                 <span>Publier</span>
               </button>
             )}
 
-            {/* Messages */}
             {isAuthenticated && canAccessMessages && (
               <button
                 onClick={handleMessages}
                 className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
               >
-                <MessageIcon unreadMessages={unreadMessages} />
+                <MessageIndicator count={unreadMessages} />
               </button>
             )}
 
-            {/* MENU DESKTOP */}
             <div className="hidden md:block">
               {isAuthenticated ? (
                 <DesktopProfileMenu
@@ -131,8 +88,8 @@ export default function Navbar() {
                   onToggle={() => setIsProfileOpen((v) => !v)}
                   onLogout={handleLogout}
                   canSeeSellerDashboard={canSeeSellerDashboard}
+                  canSeeAdmin={canSeeAdmin}
                   closeAll={closeAllMenus}
-                  t={(k: string, d?: string) => d ?? k} // fallback simple
                 />
               ) : (
                 <Link
@@ -144,10 +101,10 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* BURGER MOBILE */}
             <button
               onClick={() => setIsMenuOpen((v) => !v)}
               className="md:hidden p-2 rounded-full bg-gray-100"
+              aria-label="Menu"
             >
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -155,7 +112,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* MENU MOBILE */}
       <MobileMenu
         isOpen={isMenuOpen}
         closeAll={closeAllMenus}
@@ -165,11 +121,11 @@ export default function Navbar() {
         canPostListing={canPostListing}
         canAccessMessages={canAccessMessages}
         canSeeSellerDashboard={canSeeSellerDashboard}
+        canSeeAdmin={canSeeAdmin}
         onLogout={handleLogout}
         onPostListing={handlePostListing}
         onMessages={handleMessages}
         headerSlot={<Logo />}
-        t={(k: string, d?: string) => d ?? k}
       />
     </nav>
   );
