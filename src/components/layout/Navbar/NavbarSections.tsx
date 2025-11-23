@@ -1,4 +1,3 @@
-// src/components/navbar/NavbarSections.tsx
 import { Link } from "react-router-dom";
 import {
   ChevronDown,
@@ -10,26 +9,34 @@ import {
   Search,
   MessageSquare,
   PlusCircle,
-  LayoutDashboard as ChartBar,
+  LayoutDashboard,
+  Shield,
+  X,
 } from "lucide-react";
 import type { AuthUser } from "../../../features/auth/type";
 
-export function MessageIcon({ unreadMessages }: { unreadMessages: number }) {
+export function MessageIndicator({ count }: { count: number }) {
+  if (!count) return <MessageSquare className="h-5 w-5" />;
+
   return (
     <div className="relative">
       <MessageSquare className="h-5 w-5" />
-      {unreadMessages > 0 && (
-        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-          {Math.min(unreadMessages, 9)}
-        </span>
-      )}
+      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+        {Math.min(count, 99)}
+      </span>
     </div>
   );
 }
 
-/* ===========================================================================
-   Desktop Profile Menu
-============================================================================ */
+interface DesktopProfileMenuProps {
+  user: AuthUser;
+  isOpen: boolean;
+  onToggle: () => void;
+  onLogout: () => void;
+  canSeeSellerDashboard: boolean;
+  canSeeAdmin: boolean;
+  closeAll: () => void;
+}
 
 export function DesktopProfileMenu({
   user,
@@ -37,17 +44,9 @@ export function DesktopProfileMenu({
   onToggle,
   onLogout,
   canSeeSellerDashboard,
+  canSeeAdmin,
   closeAll,
-  t,
-}: {
-  user: AuthUser;
-  isOpen: boolean;
-  onToggle: () => void;
-  onLogout: () => void;
-  canSeeSellerDashboard: boolean;
-  closeAll: () => void;
-  t: any;
-}) {
+}: DesktopProfileMenuProps) {
   return (
     <div className="relative">
       <button
@@ -57,11 +56,7 @@ export function DesktopProfileMenu({
         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
           {user.email.charAt(0).toUpperCase()}
         </div>
-
-        <span className="font-medium text-sm">
-          {user.email.split("@")[0]}
-        </span>
-
+        <span className="font-medium text-sm">{user.email.split("@")[0]}</span>
         {isOpen ? (
           <ChevronUp className="h-4 w-4 text-gray-500" />
         ) : (
@@ -72,21 +67,29 @@ export function DesktopProfileMenu({
       {isOpen && (
         <div className="absolute right-0 mt-3 w-64 rounded-xl bg-white shadow-lg ring-1 ring-black/5 overflow-hidden z-50">
           <div className="p-3 border-b border-gray-100">
-            <p className="text-sm font-medium text-gray-700">
-              {user.email}
-            </p>
+            <p className="text-sm font-medium text-gray-700">{user.email}</p>
           </div>
 
           <div className="py-1">
-
             {canSeeSellerDashboard && (
               <Link
                 to="/seller/dashboard"
                 className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700"
                 onClick={closeAll}
               >
-                <ChartBar className="mr-3 h-5 w-5 text-gray-500" />
-                Tableau de bord
+                <LayoutDashboard className="mr-3 h-5 w-5 text-gray-500" />
+                Tableau de bord vendeur
+              </Link>
+            )}
+
+            {canSeeAdmin && (
+              <Link
+                to="/admin"
+                className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                onClick={closeAll}
+              >
+                <Shield className="mr-3 h-5 w-5 text-gray-500" />
+                Administration
               </Link>
             )}
 
@@ -96,7 +99,7 @@ export function DesktopProfileMenu({
               onClick={closeAll}
             >
               <User className="mr-3 h-5 w-5 text-gray-500" />
-              {t("nav.profile", "Profil")}
+              Profil
             </Link>
 
             <Link
@@ -105,17 +108,17 @@ export function DesktopProfileMenu({
               onClick={closeAll}
             >
               <Settings className="mr-3 h-5 w-5 text-gray-500" />
-              {t("nav.settings", "Paramètres")}
+              Paramètres
             </Link>
 
-            <div className="border-t border-gray-100 my-1"></div>
+            <div className="border-t border-gray-100 my-1" />
 
             <button
               onClick={onLogout}
               className="flex w-full items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
             >
               <LogOut className="mr-3 h-5 w-5" />
-              {t("nav.logout", "Déconnexion")}
+              Déconnexion
             </button>
           </div>
         </div>
@@ -124,25 +127,7 @@ export function DesktopProfileMenu({
   );
 }
 
-/* ===========================================================================
-   Mobile Menu
-============================================================================ */
-
-export function MobileMenu({
-  isOpen,
-  closeAll,
-  user,
-  unreadMessages,
-  isAuthenticated,
-  canPostListing,
-  canAccessMessages,
-  canSeeSellerDashboard,
-  onLogout,
-  onPostListing,
-  onMessages,
-  t,
-  headerSlot,
-}: {
+interface MobileMenuProps {
   isOpen: boolean;
   closeAll: () => void;
   user: AuthUser | null;
@@ -151,19 +136,34 @@ export function MobileMenu({
   canPostListing: boolean;
   canAccessMessages: boolean;
   canSeeSellerDashboard: boolean;
+  canSeeAdmin: boolean;
   onLogout: () => void;
   onPostListing: () => void;
   onMessages: () => void;
-  t: any;
   headerSlot?: React.ReactNode;
-}) {
+}
+
+export function MobileMenu({
+  isOpen,
+  closeAll,
+  user,
+  isAuthenticated,
+  unreadMessages,
+  canPostListing,
+  canAccessMessages,
+  canSeeSellerDashboard,
+  canSeeAdmin,
+  onLogout,
+  onPostListing,
+  onMessages,
+  headerSlot,
+}: MobileMenuProps) {
   return (
     <div
       className={`fixed inset-0 z-40 transition-all duration-300 ${
         isOpen ? "visible" : "invisible"
       }`}
     >
-      {/* Backdrop */}
       <div
         className={`absolute inset-0 bg-black/20 transition-opacity ${
           isOpen ? "opacity-100" : "opacity-0"
@@ -171,22 +171,24 @@ export function MobileMenu({
         onClick={closeAll}
       />
 
-      {/* Right panel */}
       <div
         className={`absolute right-0 top-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="h-full flex flex-col">
-          {/* Header */}
-          <div className="p-4 border-b border-gray-100">
+          <div className="p-4 border-b border-gray-100 flex items-center justify-between">
             {headerSlot}
+            <button
+              onClick={closeAll}
+              className="p-2 rounded-full hover:bg-gray-100"
+              aria-label="Fermer"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
 
-          {/* Content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
-
-            {/* Profile summary */}
             {isAuthenticated && user && (
               <div className="p-3 bg-gray-50 rounded-lg mb-4">
                 <div className="flex items-center gap-3">
@@ -194,23 +196,20 @@ export function MobileMenu({
                     {user.email.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-medium text-sm">
-                      {user.email.split("@")[0]}
-                    </p>
+                    <p className="font-medium text-sm">{user.email.split("@")[0]}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Links */}
             <Link
               to="/"
               className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50"
               onClick={closeAll}
             >
               <Home className="h-5 w-5 text-gray-500" />
-              {t("nav.home", "Accueil")}
+              Accueil
             </Link>
 
             <Link
@@ -219,24 +218,22 @@ export function MobileMenu({
               onClick={closeAll}
             >
               <Search className="h-5 w-5 text-gray-500" />
-              {t("nav.search", "Rechercher")}
+              Rechercher
             </Link>
 
-            {/* Post Listing */}
-            {isAuthenticated && (
+            {isAuthenticated && canPostListing && (
               <button
                 onClick={() => {
                   onPostListing();
                   closeAll();
                 }}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 w-full text-left"
+                className="flex items-center gap-3 p-3 rounded-lg w-full text-left hover:bg-gray-50"
               >
                 <PlusCircle className="h-5 w-5 text-gray-500" />
-                {t("nav.postListing", "Déposer une annonce")}
+                Déposer une annonce
               </button>
             )}
 
-            {/* Messages */}
             {isAuthenticated && canAccessMessages && (
               <button
                 onClick={() => {
@@ -245,18 +242,11 @@ export function MobileMenu({
                 }}
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 w-full text-left"
               >
-                <MessageSquare className="h-5 w-5 text-gray-500" />
-                {t("nav.chat", "Messages")}
-
-                {unreadMessages > 0 && (
-                  <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                    {Math.min(unreadMessages, 9)}
-                  </span>
-                )}
+                <MessageIndicator count={unreadMessages} />
+                Messages
               </button>
             )}
 
-            {/* Profile */}
             {isAuthenticated && (
               <Link
                 to="/profile"
@@ -264,23 +254,32 @@ export function MobileMenu({
                 onClick={closeAll}
               >
                 <User className="h-5 w-5 text-gray-500" />
-                {t("nav.profile", "Profil")}
+                Profil
               </Link>
             )}
 
-            {/* Seller Dashboard */}
             {isAuthenticated && canSeeSellerDashboard && (
               <Link
                 to="/seller/dashboard"
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50"
                 onClick={closeAll}
               >
-                <ChartBar className="h-5 w-5 text-gray-500" />
-                {t("nav.sellerDashboard", "Vendeur")}
+                <LayoutDashboard className="h-5 w-5 text-gray-500" />
+                Tableau vendeur
               </Link>
             )}
 
-            {/* Settings */}
+            {isAuthenticated && canSeeAdmin && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50"
+                onClick={closeAll}
+              >
+                <Shield className="h-5 w-5 text-gray-500" />
+                Admin
+              </Link>
+            )}
+
             {isAuthenticated && (
               <Link
                 to="/settings"
@@ -288,12 +287,13 @@ export function MobileMenu({
                 onClick={closeAll}
               >
                 <Settings className="h-5 w-5 text-gray-500" />
-                {t("nav.settings", "Paramètres")}
+                Paramètres
               </Link>
             )}
 
-            {/* Logout */}
-            {isAuthenticated && (
+            <div className="border-t border-gray-200 my-2" />
+
+            {isAuthenticated ? (
               <button
                 onClick={() => {
                   onLogout();
@@ -302,19 +302,16 @@ export function MobileMenu({
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 text-red-600 w-full"
               >
                 <LogOut className="h-5 w-5" />
-                {t("nav.logout", "Déconnexion")}
+                Déconnexion
               </button>
-            )}
-
-            {/* Login */}
-            {!isAuthenticated && (
+            ) : (
               <Link
                 to="/login"
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50"
                 onClick={closeAll}
               >
                 <User className="h-5 w-5 text-gray-500" />
-                {t("auth.signIn", "Connexion")}
+                Connexion
               </Link>
             )}
           </div>

@@ -24,6 +24,7 @@ interface AuthContextType {
     accessToken: string | null;
     refreshToken: string | null;
     loading: boolean;
+    hydrating: boolean;
     isAuthenticated: boolean;
 
     login: (email: string, password: string) => Promise<void>;
@@ -73,7 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [refreshToken, setRefreshToken] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [hydrating, setHydrating] = useState(true);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -83,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const init = async () => {
             const stored = loadFromStorage();
             if (!stored) {
-                setLoading(false);
+                setHydrating(false);
                 return;
             }
 
@@ -105,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setAccessToken(null);
                 setRefreshToken(null);
             } finally {
-                setLoading(false);
+                setHydrating(false);
             }
         };
 
@@ -215,6 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         accessToken,
         refreshToken,
         loading,
+        hydrating,
         isAuthenticated,
         login,
         register,
@@ -228,7 +231,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {children}
+            {hydrating && (
+                <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+                    <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full" />
+                </div>
+            )}
         </AuthContext.Provider>
     );
 }

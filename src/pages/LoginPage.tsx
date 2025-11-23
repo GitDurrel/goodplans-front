@@ -6,7 +6,7 @@ import Logo from "../components/Logo";
 import toast from "react-hot-toast";
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -183,10 +183,17 @@ export function LoginPage() {
             {/* Bouton Se connecter */}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg text-sm transition disabled:bg-gray-400"
+              disabled={loading || authLoading}
+              className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg text-sm transition disabled:bg-gray-400 flex items-center justify-center gap-2"
             >
-              {loading ? "Connexion..." : "Se connecter"}
+              {loading || authLoading ? (
+                <>
+                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Connexion en cours...
+                </>
+              ) : (
+                "Se connecter"
+              )}
             </button>
           </form>
 
