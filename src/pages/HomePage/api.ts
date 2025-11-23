@@ -68,7 +68,6 @@ function extractListings(payload: ListingsResponseShape): Listing[] {
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Content-Type", "application/json");
-  headers.set("Accept", "application/json");
 
   const authHeader = getAuthHeader();
   Object.entries(authHeader).forEach(([key, value]) => headers.set(key, value));
@@ -100,29 +99,62 @@ function buildFilterParams(filters: Filters): URLSearchParams {
   return params;
 }
 
-async function fetchListingsFromApi(path: string): Promise<Listing[]> {
-  try {
-    const payload = await fetchJson<ListingsResponseShape>(path, { method: "GET" });
-    return extractListings(payload);
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error(`Listings request failed for ${path}`, error);
-    return [];
+async function fetchWithFallback(
+  paths: string[],
+  fallbackSorter?: (listings: Listing[]) => Listing[],
+): Promise<Listing[]> {
+  let lastError: unknown;
+
+  for (const path of paths) {
+    try {
+      const result = await fetchJson<ListingsResponseShape>(path, { method: "GET" });
+      const extracted = extractListings(result);
+      return fallbackSorter ? fallbackSorter(extracted) : extracted;
+    } catch (error) {
+      lastError = error;
+      // Continue trying alternative shapes (some backends reject unknown params)
+      // eslint-disable-next-line no-console
+      console.warn(`Listings request failed for ${path}`, error);
+    }
   }
+
+  // eslint-disable-next-line no-console
+  console.error("All listings fallbacks failed", lastError);
+  return [];
 }
 
 export async function fetchRecentListings(filters: Filters): Promise<Listing[]> {
   const base = buildFilterParams(filters);
-  const path = base.toString() ? `/listings?${base.toString()}` : "/listings";
-  return fetchListingsFromApi(path);
+
+  const paginated = new URLSearchParams(base);
+  paginated.set("page", "1");
+  paginated.set("limit", "8");
+
+  const candidates = [
+    `/listings?${paginated.toString()}`,
+    base.toString() ? `/listings?${base.toString()}` : "/listings",
+    base.toString() ? `/listings/search?${base.toString()}` : "/listings/search",
+  ];
+
+  return fetchWithFallback(candidates);
 }
 
 export async function fetchMostViewedListings(): Promise<Listing[]> {
-  const listings = await fetchListingsFromApi("/listings");
-  return listings
-    .slice()
-    .sort((a, b) => (b.views ?? 0) - (a.views ?? 0))
-    .slice(0, 8);
+  const paginated = new URLSearchParams({ page: "1", limit: "50", sort: "views", order: "desc" });
+
+  const candidates = [
+    `/listings?${paginated.toString()}`,
+    "/listings",
+    "/listings/search",
+  ];
+
+  const sorter = (listings: Listing[]) =>
+    listings
+      .slice()
+      .sort((a, b) => (b.views ?? 0) - (a.views ?? 0))
+      .slice(0, 8);
+
+  return fetchWithFallback(candidates, sorter);
 }
 
 export async function fetchCategories(): Promise<Category[]> {
