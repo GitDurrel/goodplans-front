@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { LoginPage } from "./pages/LoginPage";
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
@@ -26,9 +26,12 @@ function ForbiddenPage() {
 }
 
 function App() {
+  const location = useLocation();
+  const hideChrome = ["/login", "/register"].includes(location.pathname);
+
   return (
     <>
-      <Navbar />
+      {!hideChrome && <Navbar />}
 
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -56,7 +59,7 @@ function App() {
         />
       </Routes>
 
-      <Footer />
+      {!hideChrome && <Footer />}
 
       <Toaster
         position="top-right"

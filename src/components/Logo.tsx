@@ -17,7 +17,7 @@ export default function Logo({ className = "flex items-center", withLink = true 
     <img
       src={LOGO_URL}
       alt="Goodplans Logo"
-      className="h-10 sm:h-12 md:h-14 w-auto object-contain"
+      className="h-12 sm:h-14 md:h-16 w-auto object-contain"
     />
   );
 
