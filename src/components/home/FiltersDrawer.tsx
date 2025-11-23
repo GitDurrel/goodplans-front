@@ -1,6 +1,8 @@
 import { X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+
 import type { Filters } from "../../pages/HomePage/types";
+
 
 interface CategoryTab {
   id: string;
