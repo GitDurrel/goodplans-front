@@ -221,18 +221,13 @@ export function MobileMenu({
               Rechercher
             </Link>
 
-            {isAuthenticated && (
+            {isAuthenticated && canPostListing && (
               <button
                 onClick={() => {
                   onPostListing();
                   closeAll();
                 }}
-                className={`flex items-center gap-3 p-3 rounded-lg w-full text-left ${
-                  canPostListing
-                    ? "hover:bg-gray-50"
-                    : "text-gray-400 cursor-not-allowed"
-                }`}
-                disabled={!canPostListing}
+                className="flex items-center gap-3 p-3 rounded-lg w-full text-left hover:bg-gray-50"
               >
                 <PlusCircle className="h-5 w-5 text-gray-500" />
                 Déposer une annonce

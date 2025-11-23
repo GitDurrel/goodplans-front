@@ -1,4 +1,4 @@
-import type { City, Filters, Listing } from "./types";
+import type { Category, Filters, Listing } from "./types";
 
 const API_BASE_URL = "http://localhost:3000/api";
 const AUTH_STORAGE_KEY = "gp_auth";
@@ -38,24 +38,28 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 
 export async function fetchRecentListings(filters: Filters): Promise<Listing[]> {
   const params = new URLSearchParams();
+  params.set("page", "1");
   params.set("limit", "8");
 
   if (filters.category) params.set("category", filters.category);
-  if (filters.cityId) params.set("cityId", filters.cityId);
+  if (filters.subcategory) params.set("subcategory", filters.subcategory);
+  if (filters.city) params.set("city", filters.city);
+  if (filters.region) params.set("region", filters.region);
   if (filters.minPrice) params.set("minPrice", filters.minPrice);
   if (filters.maxPrice) params.set("maxPrice", filters.maxPrice);
-  if (filters.transactionType) params.set("transactionType", filters.transactionType);
+  if (filters.transactionType)
+    params.set("transaction_type", filters.transactionType);
 
   return fetchJson<Listing[]>(`/listings?${params.toString()}`, { method: "GET" });
 }
 
 export async function fetchMostViewedListings(): Promise<Listing[]> {
-  const params = new URLSearchParams({ limit: "8", sort: "views" });
-  // ⚠️ Assumes backend supports sorting by views via `sort=views`. Adjust if API differs.
+  // ⚠️ Le backend ne propose pas encore de tri par vues ; on récupère simplement
+  // la première page. À prioriser côté API pour fournir un classement.
+  const params = new URLSearchParams({ page: "1", limit: "8" });
   return fetchJson<Listing[]>(`/listings?${params.toString()}`, { method: "GET" });
 }
 
-export async function fetchCities(): Promise<City[]> {
-  // ⚠️ Endpoint supposé: GET /api/cities -> [{ id, name }]
-  return fetchJson<City[]>("/cities", { method: "GET" });
+export async function fetchCategories(): Promise<Category[]> {
+  return fetchJson<Category[]>("/categories", { method: "GET" });
 }

@@ -6,25 +6,31 @@ export interface Listing {
   title: string;
   price: number;
   city: string;
+  region?: string;
   images: string[];
   category: string;
+  subcategory?: string;
   transaction_type?: TransactionType;
   rental_period?: RentalPeriod;
   created_at?: string;
   status?: string;
+  views?: number;
 }
 
 export interface Filters {
   category: string;
-  cityId: string;
+  subcategory: string;
+  city: string;
+  region: string;
   minPrice: string;
   maxPrice: string;
   transactionType: string;
 }
 
-export interface City {
+export interface Category {
   id: string;
   name: string;
+  slug?: string;
 }
 
 export interface CarouselItem {

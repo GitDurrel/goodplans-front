@@ -61,14 +61,10 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-3">
-            {isAuthenticated && (
+            {isAuthenticated && canPostListing && (
               <button
                 onClick={handlePostListing}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-white ${
-                  canPostListing
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : "bg-gray-400 cursor-not-allowed"
-                }`}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-white bg-blue-600 hover:bg-blue-700"
               >
                 <PlusCircle className="h-5 w-5" />
                 <span>Publier</span>

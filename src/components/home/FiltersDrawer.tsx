@@ -1,6 +1,8 @@
 import { X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { City, Filters } from "../../pages/HomePage/types";
+
+import type { Filters } from "../../pages/HomePage/types";
+
 
 interface CategoryTab {
   id: string;
@@ -12,8 +14,7 @@ interface FiltersDrawerProps {
   open: boolean;
   filters: Filters;
   categories: CategoryTab[];
-  cities: City[];
-  loadingCities: boolean;
+  loadingCategories: boolean;
   onChange: (name: keyof Filters, value: string) => void;
   onReset: () => void;
   onApply: () => void;
@@ -24,8 +25,7 @@ export function FiltersDrawer({
   open,
   filters,
   categories,
-  cities,
-  loadingCities,
+  loadingCategories,
   onChange,
   onReset,
   onApply,
@@ -49,7 +49,12 @@ export function FiltersDrawer({
 
         <div className="p-5 space-y-8">
           <div>
-            <h3 className="font-medium mb-3 text-gray-700">Catégorie</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium text-gray-700">Catégorie</h3>
+              {loadingCategories && (
+                <span className="text-xs text-gray-500">Chargement...</span>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-3">
               {categories.map((tab) => {
                 const Icon = tab.icon;
@@ -78,23 +83,34 @@ export function FiltersDrawer({
           </div>
 
           <div>
-            <h3 className="font-medium mb-3 text-gray-700">Ville</h3>
-            {loadingCities ? (
-              <div className="animate-pulse bg-gray-200 rounded-xl h-12" />
-            ) : (
-              <select
-                value={filters.cityId}
-                onChange={(e) => onChange("cityId", e.target.value)}
+            <h3 className="font-medium mb-3 text-gray-700">Localisation</h3>
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={filters.city}
+                onChange={(e) => onChange("city", e.target.value)}
+                placeholder="Ville (ex: Casablanca)"
                 className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
-              >
-                <option value="">Choisir une ville</option>
-                {cities.map((city) => (
-                  <option key={city.id} value={city.id}>
-                    {city.name}
-                  </option>
-                ))}
-              </select>
-            )}
+              />
+              <input
+                type="text"
+                value={filters.region}
+                onChange={(e) => onChange("region", e.target.value)}
+                placeholder="Région"
+                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+              />
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-medium mb-3 text-gray-700">Sous-catégorie</h3>
+            <input
+              type="text"
+              value={filters.subcategory}
+              onChange={(e) => onChange("subcategory", e.target.value)}
+              placeholder="(optionnel)"
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+            />
           </div>
 
           <div>
@@ -127,7 +143,12 @@ export function FiltersDrawer({
             </div>
           </div>
 
-          {(filters.category === "immobilier" || filters.category === "vehicules") && (
+          {([
+            "immobilier",
+            "vehicules",
+            "vehicle",
+            "real_estate",
+          ].includes(filters.category)) && (
             <div>
               <h3 className="font-medium mb-3 text-gray-700">Type de transaction</h3>
               <div className="flex gap-4">

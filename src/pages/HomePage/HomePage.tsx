@@ -7,18 +7,20 @@ import { FiltersDrawer } from "../../components/home/FiltersDrawer";
 import { SponsoredCarousel } from "../../components/home/SponsoredCarousel";
 import { ListingsGrid } from "../../components/listings/ListingsGrid";
 import {
-  fetchCities,
+  fetchCategories,
   fetchMostViewedListings,
   fetchRecentListings,
 } from "./api";
-import type { CarouselItem, City, Filters, Listing } from "./types";
+import type { CarouselItem, Category, Filters, Listing } from "./types";
 
 const HERO_IMAGE =
   "https://unixwmlawlmpsycmuwhy.supabase.co/storage/v1/object/public/image//arab-people-demonstrating-together.jpg";
 
 const DEFAULT_FILTERS: Filters = {
   category: "",
-  cityId: "",
+  subcategory: "",
+  city: "",
+  region: "",
   minPrice: "",
   maxPrice: "",
   transactionType: "",
@@ -63,38 +65,43 @@ export function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const [cities, setCities] = useState<City[]>([]);
-  const [loadingCities, setLoadingCities] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
 
   const [recentListings, setRecentListings] = useState<Listing[]>([]);
   const [mostViewedListings, setMostViewedListings] = useState<Listing[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(false);
   const [loadingMostViewed, setLoadingMostViewed] = useState(false);
 
-  const categoryTabs = useMemo(
-    () => [
-      { id: "immobilier", icon: Building2, label: "Immobilier" },
-      { id: "vehicules", icon: Car, label: "Véhicules" },
-      { id: "services", icon: Wrench, label: "Services" },
-      { id: "artisanat", icon: Palette, label: "Artisanat" },
-    ],
-    []
-  );
+  const categoryTabs = useMemo(() => {
+    const iconMap: Record<string, typeof Building2> = {
+      immobilier: Building2,
+      vehicules: Car,
+      services: Wrench,
+      artisanat: Palette,
+    };
+
+    return categories.map((category) => ({
+      id: category.slug || category.id,
+      label: category.name,
+      icon: iconMap[category.slug || ""] || Building2,
+    }));
+  }, [categories]);
 
   useEffect(() => {
-    const loadCities = async () => {
+    const loadCategories = async () => {
       try {
-        setLoadingCities(true);
-        const data = await fetchCities();
-        setCities(data);
+        setLoadingCategories(true);
+        const data = await fetchCategories();
+        setCategories(data);
       } catch (error) {
-        console.error("Erreur lors du chargement des villes", error);
+        console.error("Erreur lors du chargement des catégories", error);
       } finally {
-        setLoadingCities(false);
+        setLoadingCategories(false);
       }
     };
 
-    loadCities();
+    void loadCategories();
   }, []);
 
   useEffect(() => {
@@ -141,7 +148,9 @@ export function HomePage() {
     const searchParams = new URLSearchParams();
     if (searchQuery) searchParams.append("q", searchQuery);
     if (filters.category) searchParams.append("category", filters.category);
-    if (filters.cityId) searchParams.append("cityId", filters.cityId);
+    if (filters.subcategory) searchParams.append("subcategory", filters.subcategory);
+    if (filters.city) searchParams.append("city", filters.city);
+    if (filters.region) searchParams.append("region", filters.region);
     if (filters.minPrice) searchParams.append("minPrice", filters.minPrice);
     if (filters.maxPrice) searchParams.append("maxPrice", filters.maxPrice);
     if (filters.transactionType) searchParams.append("transactionType", filters.transactionType);
@@ -150,14 +159,15 @@ export function HomePage() {
   };
 
   const handleViewMore = () => {
-    if (filters.category) {
-      navigate(`/category/${filters.category}`);
-    } else if (filters.cityId) {
-      navigate(`/city/${filters.cityId}`);
-    } else {
-      navigate("/listings");
-    }
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.append(key, value);
+    });
+    navigate(`/listings?${params.toString()}`);
   };
+
+  const selectedCategoryLabel =
+    categoryTabs.find((tab) => tab.id === filters.category)?.label || undefined;
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
@@ -178,7 +188,11 @@ export function HomePage() {
 
       <div className="container mx-auto px-4 py-12">
         <ListingsGrid
-          title={filters.category ? `Annonces ${filters.category}` : "Annonces récentes"}
+          title={
+            selectedCategoryLabel
+              ? `Annonces ${selectedCategoryLabel}`
+              : "Annonces récentes"
+          }
           listings={recentListings}
           loading={loadingRecent}
           onSeeMore={handleViewMore}
@@ -191,7 +205,7 @@ export function HomePage() {
           title="Les plus consultées"
           listings={mostViewedListings}
           loading={loadingMostViewed}
-          onSeeMore={() => navigate("/listings?sort=views")}
+          onSeeMore={() => navigate("/listings")}
         />
       </div>
 
@@ -199,8 +213,7 @@ export function HomePage() {
         open={showFilters}
         filters={filters}
         categories={categoryTabs}
-        cities={cities}
-        loadingCities={loadingCities}
+        loadingCategories={loadingCategories}
         onChange={handleFilterChange}
         onReset={resetFilters}
         onApply={() => undefined}
